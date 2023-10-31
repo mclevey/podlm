@@ -2,19 +2,23 @@
 
 # Overview
 
-# Running Analyses
+# Preparing Analyses
+
+To start a new analysis, initialize an analysis directory with `curry init`. For example, to initialize an analysis directory called `mclevey_20231031_rebuilding_pipeline`, we can supply the keywords "rebuilding pipeline":
 
 ```bash
 curry init "rebuilding pipeline"
 ```
 
-Edit `analyses/mclevey_20231031_rebuilding_pipeline/config.yaml`.
+The `curry run` command will run the pipeline and store your dataset in `analyses/<ANALYSIS_DIR_NAME>/_import_/results` (e.g., `analyses/mclevey_20231031_rebuilding_pipeline/_import_/results`). However, before you do that you have to edit the analysis config file in the root of your analysis directory (e.g., `analyses/mclevey_20231031_rebuilding_pipeline/config.yaml`).
+
+Once you've finished with `config.yaml`, you can run the pipeline by supplying `curry run` with the path to the analysis directory. For example, 
 
 ```bash
-curry run "rebuilding pipeline"
+curry run analyses/mclevey_20231031_rebuilding_pipeline
 ```
 
-> [!info] Note that `curry run rebuilding_pipeline` will also work.
+It will take some time for the pipeline to run. 
 
 ## Config Files
 
