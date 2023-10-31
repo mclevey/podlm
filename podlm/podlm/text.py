@@ -2,11 +2,11 @@ from termcolor import colored
 from scipy.special import softmax
 from datetime import datetime
 import pandas as pd
-from sentence_transformers import SentenceTransformer
-from umap import UMAP
-from hdbscan import HDBSCAN
-from sklearn.feature_extraction.text import CountVectorizer
-from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, PartOfSpeech
+# from sentence_transformers import SentenceTransformer
+# from umap import UMAP
+# from hdbscan import HDBSCAN
+# from sklearn.feature_extraction.text import CountVectorizer
+# from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, PartOfSpeech
 
 def split_sentences(df: pd.DataFrame, model, textcol: str = 'text', idcol: str = 'id') -> pd.DataFrame:
     sentences = []
@@ -20,6 +20,37 @@ def split_sentences(df: pd.DataFrame, model, textcol: str = 'text', idcol: str =
                 sentences.append({'id_sentence': id_sentence, 'sentence': sent.text})
     sentences = pd.DataFrame(sentences)    
     return sentences
+
+
+def count_categorical(df: pd.DataFrame, id_col: str, cat_col: str, score_threshold: float) -> pd.DataFrame:
+    df = df[df['score'] > score_threshold]
+    grouped = df.groupby([id_col, cat_col])
+    counts = grouped.size().reset_index(name='count')
+    pivoted = counts.pivot(index=id_col, columns=cat_col, values='count')
+    pivoted = pivoted.fillna(0)
+    pivoted = pivoted.reset_index()
+    return pivoted
+
+
+def transformer_entities(df: pd.DataFrame, model, entity_score_threshold: float, textcol: str = 'sentence', idcol: str = 'id_sentence'):
+    entity_dfs, errors = [], []
+    for i,t in enumerate(df[textcol]):
+        try: 
+            entities = model.predict(t)
+            if len(entities) > 0:
+                entdf = pd.DataFrame(entities)
+                entdf['id_sentence'] = df.iloc[i][idcol]
+                entity_dfs.append(entdf)
+        except:
+            errors.append([i, t])
+    if len(errors) > 0:
+        for error in errors:
+            print(colored(error, 'red'))
+    results_long = pd.concat(entity_dfs)
+    # count types above score threshold
+    count_types = count_categorical(results_long, 'id_sentence', 'label', score_threshold=entity_score_threshold)
+    count_types.columns = [f'entity_count_{c}'.lower() for c in count_types.columns]
+    return results_long, count_types
 
 
 def transformer_sentiment(df, idcol, textcol, poscol, authorcol, datecol, tokenizer, model):
@@ -61,37 +92,6 @@ def transformer_sentiment(df, idcol, textcol, poscol, authorcol, datecol, tokeni
                 f.write(e + '\n')
     return df
 
-
-def transformer_entities(df, textcol, idcol, poscol, authorcol, datecol, model):
-    entity_dfs, errors = [], []
-    
-    text = df[textcol].to_list()
-    ids = df[idcol].to_list()
-    posids = df[poscol].to_list()
-    authors = df[authorcol].to_list()
-    dates = df[datecol].to_list()
-
-    for t,i,p,a,d in zip(text, ids, posids, authors, dates):
-        try: 
-            entities = model.predict(t.strip())
-            if len(entities) > 0:
-                entdf = pd.DataFrame(entities)
-                entdf['id'] = i
-                entdf['sentence_position_in_post'] = p
-                entdf['sentence'] = t
-                entdf['date'] = d
-                entdf['author'] = a
-                entity_dfs.append(entdf)
-        except:
-            errors.append([i, p, t])
-    results = pd.concat(entity_dfs)
-    results.rename(columns={'span': 'entity_span',
-                   'label': 'entity_label',
-                   'score': 'entity_score',
-                   'char_start_index': 'entity_start_index',
-                   'char_end_index': 'entity_char_end_index'
-                   }, inplace=True)
-    return results, errors
 
 
 def transformer_topics(df: pd.DataFrame, textcol: str, 
@@ -195,20 +195,20 @@ def truncate_text_to_transformer_limit(text: str, transformer_token_limit: int =
 #     matches = [match.text for match in matches]
 #     return matches
 
-def count_parts_of_speech(df: pd.DataFrame, model, textcol: str = 'sentence') -> pd.DataFrame:
-    counts, ids = [], []
-    docs = model.pipe(df[textcol])
-    for i_doc, doc in enumerate(docs):
-        id_sentence = df.iloc[i_doc]['id_sentence']
-        ids.append(id_sentence)
-        # COARSE POS
-        pos_count = doc.count_by(spacy.attrs.POS)
-        pos_count = {nlp.vocab.strings[k]: v for k, v in pos_count.items()}
-        counts.append(pos_count)
+# def count_parts_of_speech(df: pd.DataFrame, model, textcol: str = 'sentence') -> pd.DataFrame:
+#     counts, ids = [], []
+#     docs = model.pipe(df[textcol])
+#     for i_doc, doc in enumerate(docs):
+#         id_sentence = df.iloc[i_doc]['id_sentence']
+#         ids.append(id_sentence)
+#         # COARSE POS
+#         pos_count = doc.count_by(spacy.attrs.POS)
+#         pos_count = {nlp.vocab.strings[k]: v for k, v in pos_count.items()}
+#         counts.append(pos_count)
         
-    counts = pd.DataFrame(counts).fillna(0)
-    counts['id_sentence'] = ids
-    return counts
+#     counts = pd.DataFrame(counts).fillna(0)
+#     counts['id_sentence'] = ids
+#     return counts
 
 
 
