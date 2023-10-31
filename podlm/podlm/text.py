@@ -53,7 +53,7 @@ def transformer_entities(df: pd.DataFrame, model, entity_score_threshold: float,
     return results_long, count_types
 
 
-def transformer_sentiment(df: pd.DataFrame, model, tokenizer, textcol: str = 'sentence', idcol: str = 'id_sentence'): # entity_score_threshold: float,
+def transformer_sentiment(df: pd.DataFrame, model, tokenizer, textcol: str = 'sentence', idcol: str = 'id_sentence'):
     scores, errors, sentids = [], [], []
     for i, t in enumerate(df[textcol]):
         try:
@@ -74,21 +74,43 @@ def transformer_sentiment(df: pd.DataFrame, model, tokenizer, textcol: str = 'se
     return df
         
 
+def transformer_emotion_concepts(df: pd.DataFrame, model, tokenizer, textcol: str = 'sentence', idcol: str = 'id_sentence'): 
+    errors, sentids = [], []
+    roberta_base_go_emotions = ['admiration', 'amusement', 'anger', 'annoyance', 
+                            'approval', 'caring', 'confusion', 'curiosity', 'desire', 
+                            'disappointment', 'disapproval', 'disgust', 'embarrassment', 
+                            'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 
+                            'nervousness', 'neutral', 'optimism', 'pride', 'realization', 
+                            'relief', 'remorse', 'sadness', 'surprise']
+    
+    ec_wide = []
+    for i, t in enumerate(df[textcol]):
+        try:
+            wide = []
+            if len(t) > 512:
+                t = truncate_text_to_transformer_limit(text = t)
+            emo = model(t)[0] 
+            for ec in roberta_base_go_emotions:
+                for e in emo:
+                    if e['label'] == ec:
+                        wide.append(e['score'])
+            ec_wide.append(wide)
+            sentids.append(df.iloc[i][idcol])
+        except:
+            errors.append([i, t])
+        if len(errors) > 0:
+            for error in errors:
+                print(colored(error, 'red'))
+    df = pd.DataFrame(ec_wide)
+    df.columns = roberta_base_go_emotions
+    df['sentence_id'] = sentids
+    return df
+
+
 def transformer_topics(df: pd.DataFrame, textcol: str, 
                        sentence_transformer_model: str, 
                        hdbscan_min_cluster_size=15, 
                        show_sent_embeddings_progress_bar=True):
-    """
-    This function executes a BERTopic pipeline one step at a time so that I can easily
-    configure the parameters of each modular component. 
-    
-    1. Compute sentence embeddings in advance and then pass them to the BERTopic model
-    2. Use UMAP to reduce the dimensionality of the sentence embeddings
-    3. Use HDBSCAN to cluster the sentence embeddings
-    4. Re-parameterize CountVectorizer and compute ctf-idf scores for each sentence
-    5. Compute additional topic representations using KeyBERTInspired, MaximalMarginalRelevance, and PartOfSpeech models
-    6. Fit the topic model!
-    """
     from bertopic import BERTopic
 
     text = df[textcol].tolist()    
@@ -114,57 +136,17 @@ def transformer_topics(df: pd.DataFrame, textcol: str,
     return topics, probabilities, topic_info, df, topic_model
 
 
-def transformer_emotion_concepts(df, idcol, poscol, authorcol, datecol, textcol, model):
-    errors = []
-    roberta_base_go_emotions = ['admiration', 'amusement', 'anger', 'annoyance', 
-                            'approval', 'caring', 'confusion', 'curiosity', 'desire', 
-                            'disappointment', 'disapproval', 'disgust', 'embarrassment', 
-                            'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 
-                            'nervousness', 'neutral', 'optimism', 'pride', 'realization', 
-                            'relief', 'remorse', 'sadness', 'surprise']
-    
-    meta, ec_wide = [], []
-    for i,p,a,d,t in zip(df[idcol], df[poscol], df[authorcol], df[datecol], df[textcol]):
-        t = t.strip() # this should be done early in the project pipeline so it applies everywhere
-        try:
-            wide = []
-            meta.append([i, p, a, d, t])
-            # truncate to 512 tokens, doesn't really matter since we are working at sent-level
-            if len(t) > 512:
-                t = truncate_text_to_transformer_limit(text = t)
-            emo = model(t)[0] 
-            for ec in roberta_base_go_emotions:
-                for e in emo:
-                    if e['label'] == ec:
-                        wide.append(e['score'])
-            ec_wide.append(wide)
-        except:
-            errors.append(f'Unable to process {i}\n{t}\n\n')
-        
-    results = [m + e for m, e in zip(meta, ec_wide)]
-    results = pd.DataFrame(results)    
-    results.columns = ['id', 'sentence_position_in_post', 'author', 'date', 'sentence'] + roberta_base_go_emotions   
-    return results, errors
 
 
-def truncate_text_to_transformer_limit(text: str, transformer_token_limit: int = 512) -> str:
-    original_text = text
-    truncated_text = text[:512]
-    cutoff_tokens = text[512:]
-    overlimit = len(original_text) - transformer_token_limit
-    boundary = '------------------------------------------------------------------'
-    message_p1 = f'The following text is {overlimit} tokens over the 512 limit:'
-    message_p2 = 'Truncating to 512 tokens to avoid transformer error or indexing problems. The truncated version is as follows:'
-    message_p3 = 'The following tokens did not get passed to the model:'
-    print(colored(boundary, 'red'))
-    print(colored(message_p1, 'red'))
-    print(original_text)
-    print(colored(message_p2, 'red'))
-    print(truncated_text)
-    print(colored(message_p3, 'red'))
-    print(cutoff_tokens)
-    print(colored(boundary, 'red'))
-    return text
+
+
+
+
+
+
+
+
+
 
 
 # def matchy_matchy(doc, pattern, model):
@@ -190,31 +172,17 @@ def truncate_text_to_transformer_limit(text: str, transformer_token_limit: int =
 #     counts['id_sentence'] = ids
 #     return counts
 
+# from sentence_transformers import SentenceTransformer, util
 
+# similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-
-
-
-
-
-"""
-import pandas as pd
-from sentence_transformers import SentenceTransformer, util
-from tqdm import tqdm
-
-
-
-
-similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
-
-def llm_cosine_similarity(sentences, ids, positions, llm=similarity_model):
-    results = []
-    paraphrases = util.paraphrase_mining(llm, sentences)
-    for paraphrase in paraphrases:
-        score, i, j = paraphrase
-        results.append([sentences[i], sentences[j], score, ids[i], ids[j], positions[i], positions[j]])
-    df = pd.DataFrame(results)
-    df.columns = ['Sentence[i]', 'Sentence[j]', 'Cosine Similarity', 'Sentence[i] ID', 'Sentence[j] ID', 'Sentence[i] Position', 'Sentence[j] Position']
-    return df
+# def llm_cosine_similarity(sentences, ids, positions, llm=similarity_model):
+#     results = []
+#     paraphrases = util.paraphrase_mining(llm, sentences)
+#     for paraphrase in paraphrases:
+#         score, i, j = paraphrase
+#         results.append([sentences[i], sentences[j], score, ids[i], ids[j], positions[i], positions[j]])
+#     df = pd.DataFrame(results)
+#     df.columns = ['Sentence[i]', 'Sentence[j]', 'Cosine Similarity', 'Sentence[i] ID', 'Sentence[j] ID', 'Sentence[i] Position', 'Sentence[j] Position']
+#     return df
     
-"""
