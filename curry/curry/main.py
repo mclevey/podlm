@@ -86,7 +86,8 @@ def run(analysis_dir):
     logfiles = list(pathlib.Path('pipeline').rglob('*.log'))
     for log in logfiles:
         shutil.copy(log, f'{analysis_dir}/pipeline_logs')
-        click.echo(colored(f'🧐 FILED: {log} > {analysis_dir}/pipeline_logs.', 'yellow'))
+        log_file_string = str(log).split('/')[-1]
+        click.echo(colored(f'🧐 FILED {analysis_dir}/pipeline_logs/{log_file_string}', 'yellow'))
 
     
     # click.echo(colored('🔥 Update dependency graphs...', 'red'))
@@ -97,7 +98,8 @@ def run(analysis_dir):
     if len(dependencies) > 0:
         for graph in dependencies:
             shutil.copy(graph, f'{analysis_dir}/pipeline_dependencies')
-            click.echo(colored(f'🧐 FILED: {graph} > {analysis_dir}/pipeline_dependencies.', 'yellow'))
+            graph_file_string = str(graph).split('/')[-1]
+            click.echo(colored(f'🧐 FILED {analysis_dir}/pipeline_dependencies/{graph_file_string}', 'yellow'))
     
     # os.remove(config_pipeline) 
     # seems like it's best to leave the last config file in _import_ to keep pdpp happy. 

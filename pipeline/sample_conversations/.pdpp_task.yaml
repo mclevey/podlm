@@ -1,0 +1,20 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  run_es_query: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_comments.parquet.gzip
+    - harmreduction_submissions.parquet.gzip
+    task_name: run_es_query
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- sample_conversations.py
+target_dir: sample_conversations
