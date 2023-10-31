@@ -11,7 +11,7 @@ config, _ = load_configs()
 subreddits = config['subreddits']
 
 for r in subreddits:
-    df = load_parquet(f'{r}_merged')
+    df = load_parquet(f'{r}_post_level_subcom_merged')
     df = split_sentences(df, nlp, 'text', 'id')
     logging.debug("Extracted sentences from posts and assigned sentence-level ids.") 
     save_parquet(df, f'{r}_sentences')
