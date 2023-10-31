@@ -3,10 +3,8 @@ import urllib3
 urllib3.disable_warnings()
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
-    
-es = Elasticsearch('https://elastic:Wdw*Edpnt3dcOe_4JDDx@localhost:9200/', verify_certs=False)
 
-def search(search: str, es=es):
+def es_query_reddit(search: str, es: Elasticsearch):
     results = {}    
     query = {'query': {'match': {'subreddit': search}}}
     reddit_indexes = ['reddit-index-s', 'reddit-index-c']
@@ -16,7 +14,6 @@ def search(search: str, es=es):
         dropcols = ['_source', '_score', '_id', '_index', 'gildings']
         df.drop(columns=dropcols, inplace=True)
         
-        # df = rename_columns(df)
         df = set_dtypes(df)
         df = process_datetimes(df)
         
@@ -26,25 +23,12 @@ def search(search: str, es=es):
         elif ri == 'reddit-index-c':
             results['coms'] = df    
             df['id'] = 't1_' + df['id']
-            
     return results['subs'], results['coms']
 
 
 def es_results_to_df(search_results):
     df = pd.DataFrame.from_records(list(search_results))
     df = pd.concat([df, df['_source'].apply(pd.Series)], axis=1)
-    return df
-
-
-def rename_columns(df: pd.DataFrame):
-    df.rename(columns={
-        'selftext': 'post-self-text', 
-        'domain': 'link-domain'
-        }, inplace=True)
-    if 'title' in df.columns:
-        df.rename(columns={'title': 'post-title'}, inplace=True)
-    if 'body' in df.columns:
-        df.rename(columns={'body': 'post-comment'}, inplace=True)
     return df
 
 

@@ -18,6 +18,7 @@ def init(keywords):
     researchers name and current date to form a unique analysis directory
     name / id. It creates the directory, initializes pdpp, and creates
     a config.yaml file that can be used to execute the project pipeline. 
+    It also clears any old log file from the pipeline to ensure a clean run.
     """
     who = os.getlogin()
     when = datetime.now().strftime("%Y%m%d")
@@ -25,6 +26,7 @@ def init(keywords):
     analysis_dir = os.path.join('analyses/', analysis_id)
     if os.path.exists(analysis_dir) is False:
         os.mkdir(analysis_dir)
+        os.mkdir(os.path.join(analysis_dir, 'pipeline_dependencies'))
         os.mkdir(os.path.join(analysis_dir, 'pipeline_logs'))
         os.system(f'cd {analysis_dir} && pdpp init')
         config = f'{analysis_dir}/config.yaml'
@@ -50,24 +52,31 @@ def init(keywords):
     else:
         click.echo(colored(f'👎 {analysis_dir} already exists. Choose other keywords.', 'red'))
         
+    # clear out any logfiles from the pipeline that were stored in previous runs
+    logfiles = list(pathlib.Path('pipeline').rglob('*.log'))
+    if len(logfiles) > 0:
+        for log in logfiles:
+            os.remove(log)
+            click.echo(colored(f'🧼 Scrubbed old log files from pipeline/ in preparation for new analysis.', 'red'))
+    
+        
 
 @main.command()
 @click.argument('analysis_dir', type=click.Path(exists=True), required=1)
 def run(analysis_dir):
     """
-    This function accepts a path (e.g., analyses/johnmclevey_20231029_yo_yo_yo),
+    This function accepts a path to an analysis directory (created by the init command),
     copies the config file into the _import_ folder of the project pipeline, 
     executes the project pipeline, copies the contents of the _export_ directory
-    of the pipeline into the _import_ analysis of the analysis directory, and then 
-    deletes the config file from the pipeline _import_ directory. 
-
-    Note that adding this file (with the specific file name) to the pipeline _import_
-    directory will ALWAYS trigger the full project pipeline, as everything is downstream 
-    of _import_/config.yaml. This is intentional!
+    from pipeline into the _import_/results directory of analysis. It also files 
+    log files and dependency graphs into pipeline_logs and pipeline_dependencies.
+    It currently LEAVES THE CONFIG FILE in the _import_ directory of the pipeline
+    because it plays better with pdpp, but the config file will be overwritten if 
+    a new run is executed. 
     """
     config_analysis = f'{analysis_dir}/config.yaml'
     config_pipeline = 'pipeline/_import_/config.yaml'
-    shutil.copy(config_analysis, config_pipeline)
+    shutil.copy(config_analysis, config_pipeline)    
     os.system('cd pipeline && pdpp run')
     
     shutil.copytree('pipeline/_export_', 
@@ -77,12 +86,18 @@ def run(analysis_dir):
     logfiles = list(pathlib.Path('pipeline').rglob('*.log'))
     for log in logfiles:
         shutil.copy(log, f'{analysis_dir}/pipeline_logs')
-        click.echo(colored(f'Found {log}.', 'blue'))
+        click.echo(colored(f'🧐 FILED: {log} > {analysis_dir}/pipeline_logs.', 'yellow'))
 
+    
+    # click.echo(colored('🔥 Update dependency graphs...', 'red'))
+    # os.system('cd pipeline && pdpp graph')
+    # ^ is there a way to use BOTH options and arguments for pdpp? ;)
+    
     dependencies = list(pathlib.Path('pipeline').rglob('dependencies_*.png'))
     if len(dependencies) > 0:
         for graph in dependencies:
-            shutil.copy(graph, f'{analysis_dir}/')
-            click.echo(colored(f'Found {graph}, may be outdated.', 'blue'))
-
-    os.remove(config_pipeline)
+            shutil.copy(graph, f'{analysis_dir}/pipeline_dependencies')
+            click.echo(colored(f'🧐 FILED: {graph} > {analysis_dir}/pipeline_dependencies.', 'yellow'))
+    
+    # os.remove(config_pipeline) 
+    # seems like it's best to leave the last config file in _import_ to keep pdpp happy. 

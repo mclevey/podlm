@@ -1,19 +1,29 @@
 import yaml
 import pandas as pd
-
-def load_params(params_path: str ='../input/parameters.yaml'):
-    with open(params_path, 'rb') as file:
-        params = yaml.safe_load(file)
-    return params
+import logging
 
 
+def load_configs(config_path: str ='../input/config.yaml', private_path: str = '../../../private.yaml'):
+    with open(config_path, 'rb') as file:
+        config = yaml.safe_load(file)
+    with open(private_path, 'rb') as file:
+        private = yaml.safe_load(file)
+    return config, private
+
+
+def configure_logging(task_name: str):
+    logfile = task_name.split('/')[-1].replace('.py', '.log')
+    logging.basicConfig(filename=logfile, 
+                        level=logging.DEBUG,
+                        format='%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s')
+    
+    
 def load_parquet(filename: str):
     return pd.read_parquet(f'../input/{filename}.parquet.gzip')
 
 
 def save_parquet(df: pd.DataFrame, filename: str):
     df.to_parquet(f'../output/{filename}.parquet.gzip', compression='gzip')
-    print(f'Wrote {filename}.parquet.gzip to ../output/')
     
 
 def merge_string_columns(df: pd.DataFrame, col1: pd.Series, col2: pd.Series, new_col_name: str, drop=True):

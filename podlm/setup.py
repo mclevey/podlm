@@ -4,7 +4,7 @@ with open("README.md", "r") as f:
     readme = f.read()
 
 setup(
-    name="odlm",
+    name="podlm",
     version="0.0.10",
     packages=find_packages(),
     install_requires=["pandas"],

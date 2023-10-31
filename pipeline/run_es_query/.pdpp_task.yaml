@@ -1,5 +1,11 @@
 !!python/object:pdpp.tasks.standard_task.StandardTask
-dep_files: {}
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
 enabled: true
 language: Python
 src_files:
