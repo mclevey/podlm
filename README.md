@@ -10,8 +10,12 @@ To start a new analysis, initialize an analysis directory with `curry init`. For
 curry init "rebuilding pipeline"
 ```
 
-Or, equivalently, `curry init rebuilding_pipeline`. 
+Or, equivalently:
 
+```bash
+curry init rebuilding_pipeline
+```
+ 
 The next step is to edit the analysis config file in the root of your analysis directory, e.g., `analyses/mclevey_20231031_rebuilding_pipeline/config.yaml`. Once you've finished with `config.yaml`, you can run the pipeline by supplying `curry run` with the path to the analysis directory. 
 
 ```bash
