@@ -26,11 +26,12 @@ It will take some time for the pipeline to run. When it finsihes, the contents o
 
 ## Config Files
 
-Anytime you run the pipeline, you will need to supply two config files:
+The pipeline needs two config files to run:
 
 1. The config file in your analysis directory, e.g. `analyses/mclevey_20231031_rebuilding_pipeline/config.yaml`, and
 2. The `private.yaml` config file in the root directory of the project, which contains sensitive information like credentials and does **not** get committed to the repository.
 
+The pipeline will automatically load `private.yaml` as long as it exists in the project root directory.
 
 # `pdpp` Pipeline
 
