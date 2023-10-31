@@ -8,24 +8,38 @@ from hdbscan import HDBSCAN
 from sklearn.feature_extraction.text import CountVectorizer
 from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, PartOfSpeech
 
-
-def split_sentences(df: pd.DataFrame, textcol: str, idcol: str, datetimecol, authorcol: str, model):
-    sentences, positions, ids, dates, authors = [], [], [], [], []
-    texts = df[textcol].tolist()
-    # for some reason, t.strip() is not stripping all the \n characters, so I'm doing it manually...
-    texts = [t.strip().replace('\n', '') for t in texts if isinstance(t, str) is True]    
+def split_sentences(df: pd.DataFrame, model, textcol: str = 'text', idcol: str = 'id') -> pd.DataFrame:
+    sentences = []
+    texts = df[textcol].replace(r'\n',' ', regex=True)
     docs = model.pipe(texts)
-    for didx, doc in enumerate(docs):
-        for sidx, sent in enumerate(doc.sents):
+    for i_doc, doc in enumerate(docs):
+        for i_sent, sent in enumerate(doc.sents):
             if len(sent) > 2:
-                sentences.append(" ".join([token.text for token in sent])) 
-                positions.append(sidx)
-                ids.append(df[idcol].iloc[didx])
-                dates.append(df[datetimecol].iloc[didx])
-                authors.append(df[authorcol].iloc[didx])
-    df = pd.DataFrame([sentences, positions, ids, dates, authors]).T
-    df.columns = ["sentence", "sentence_position_in_post", 'id', 'date', 'author']
-    return df
+                post_id = df.iloc[i_doc][idcol] 
+                id_sentence = str(post_id) + '_' + str(i_sent)
+                sentences.append({'id_sentence': id_sentence, 'sentence': sent.text})
+    sentences = pd.DataFrame(sentences)    
+    return sentences
+
+
+
+# def split_sentences(df: pd.DataFrame, textcol: str, idcol: str, datetimecol, authorcol: str, model):
+#     sentences, positions, ids, dates, authors = [], [], [], [], []
+#     texts = df[textcol].tolist()
+#     # for some reason, t.strip() is not stripping all the \n characters, so I'm doing it manually...
+#     texts = [t.strip().replace('\n', '') for t in texts if isinstance(t, str) is True]    
+#     docs = model.pipe(texts)
+#     for didx, doc in enumerate(docs):
+#         for sidx, sent in enumerate(doc.sents):
+#             if len(sent) > 2:
+#                 sentences.append(" ".join([token.text for token in sent])) 
+#                 positions.append(sidx)
+#                 ids.append(df[idcol].iloc[didx])
+#                 dates.append(df[datetimecol].iloc[didx])
+#                 authors.append(df[authorcol].iloc[didx])
+#     df = pd.DataFrame([sentences, positions, ids, dates, authors]).T
+#     df.columns = ["sentence", "sentence_position_in_post", 'id', 'date', 'author']
+#     return df
 
 
 def transformer_sentiment(df, idcol, textcol, poscol, authorcol, datecol, tokenizer, model):

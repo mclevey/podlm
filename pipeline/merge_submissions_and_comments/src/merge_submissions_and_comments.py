@@ -11,6 +11,7 @@ for r in subreddits:
     subs = load_parquet(f'{r}_submissions') 
     coms = load_parquet(f'{r}_comments')
     df = merge_submissions_and_comments(subs, coms)
+    logging.debug("Sucessfuly merged submissions and comments.") 
     save_parquet(df, f'{r}_merged')
      
     

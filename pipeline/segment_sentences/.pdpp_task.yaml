@@ -1,0 +1,19 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  merge_submissions_and_comments: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_merged.parquet.gzip
+    task_name: merge_submissions_and_comments
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- segment_sentences.py
+target_dir: segment_sentences

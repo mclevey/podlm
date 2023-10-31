@@ -87,19 +87,17 @@ def run(analysis_dir):
     for log in logfiles:
         shutil.copy(log, f'{analysis_dir}/pipeline_logs')
         log_file_string = str(log).split('/')[-1]
-        click.echo(colored(f'🧐 FILED {analysis_dir}/pipeline_logs/{log_file_string}', 'yellow'))
+        click.echo(colored(f'🧐 FILED LOG {log_file_string}', 'yellow'))
 
-    
-    # click.echo(colored('🔥 Update dependency graphs...', 'red'))
-    # os.system('cd pipeline && pdpp graph')
-    # ^ is there a way to use BOTH options and arguments for pdpp? ;)
+    click.echo(colored('🧐 Updating dependency graphs...'.upper(), 'red'))
+    os.system("cd pipeline && pdpp graph --files 'png' --style 'default'")
     
     dependencies = list(pathlib.Path('pipeline').rglob('dependencies_*.png'))
     if len(dependencies) > 0:
         for graph in dependencies:
             shutil.copy(graph, f'{analysis_dir}/pipeline_dependencies')
             graph_file_string = str(graph).split('/')[-1]
-            click.echo(colored(f'🧐 FILED {analysis_dir}/pipeline_dependencies/{graph_file_string}', 'yellow'))
+            click.echo(colored(f'🧐 FILED DEPENDENCY GRAPH {graph_file_string}', 'yellow'))
     
     # os.remove(config_pipeline) 
     # seems like it's best to leave the last config file in _import_ to keep pdpp happy. 
