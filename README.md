@@ -47,6 +47,21 @@ everytime it executes the pipeline.
 
 # Environments
 
+You can find `yaml` files to create the environments used in this project in `environments/`.
+
+To write a new environment called `entities.yml`, for example: 
+
+```bash
+conda env export > environments/entities.yml
+```
+
+To create a new environment from a `yaml` file, for example `entities` from `entities.yml`:
+
+```bash
+conda env create -f environments/entities.yml
+```
+
+
 # Packages
 
 ## `curry`

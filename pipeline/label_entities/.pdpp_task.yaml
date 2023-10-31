@@ -12,7 +12,7 @@ dep_files:
     - harmreduction_sentences.parquet.gzip
     task_name: segment_sentences
     task_out: output
-enabled: true
+enabled: false
 language: Python
 src_files:
 - label_entities.py

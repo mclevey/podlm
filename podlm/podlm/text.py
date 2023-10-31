@@ -53,46 +53,26 @@ def transformer_entities(df: pd.DataFrame, model, entity_score_threshold: float,
     return results_long, count_types
 
 
-def transformer_sentiment(df, idcol, textcol, poscol, authorcol, datecol, tokenizer, model):
-    scores, ids, positions, author_l, dates_l, sent_l, errors = [], [], [], [], [], [], []
-    id_list = df[idcol].tolist() 
-    sent_list = df[textcol].tolist() 
-    posids = df[poscol].tolist()
-    authors = df[authorcol].tolist()
-    dates = df[datecol].tolist()
-    
-    for i, sent, pos, a, d in zip(id_list, sent_list, posids, authors, dates):
+def transformer_sentiment(df: pd.DataFrame, model, tokenizer, textcol: str = 'sentence', idcol: str = 'id_sentence'): # entity_score_threshold: float,
+    scores, errors, sentids = [], [], []
+    for i, t in enumerate(df[textcol]):
         try:
-            encoded = tokenizer.encode(sent, return_tensors='pt')
+            encoded = tokenizer.encode(t, return_tensors='pt')
             sentsent = model(encoded)
             sentsent = sentsent[0][0].detach().numpy()
-            sentsent = softmax(sentsent) # convert to probabilities
+            sentsent = softmax(sentsent)
             scores.append(sentsent)
-            ids.append(i)
-            positions.append(pos)
-            author_l.append(a)
-            dates_l.append(d)
-            sent_l.append(sent)
+            sentids.append(df.iloc[i][idcol])
         except:
-            errors.append(f'Unable to process {i}\n{sent}\n\n')
+            errors.append([i, t])
+        if len(errors) > 0:
+            for error in errors:
+                print(colored(error, 'red'))
     df = pd.DataFrame(scores)
-    df.columns = ['p(positive) sentiment', 'p(neutral) sentiment', 'p(negative) sentiment']
-    df['id'] = ids
-    df['sentence_position_in_post'] = positions
-    df['author'] = author_l
-    df['date'] = dates_l
-    df['sentence'] = sent_l
-        
-    if len(errors) > 0:
-        with open('../output/errors.txt', 'a', encoding='utf-8') as f:
-            for e in errors:
-                now = datetime.now()
-                now_str = now.strftime("%d/%m/%Y %H:%M:%S")
-                f.write(f'Errors from run: {now_str}\n')
-                f.write(e + '\n')
+    df.columns = ['sentiment_negative', 'sentiment_neutral', 'sentiment_positive']
+    df['sentence_id'] = sentids
     return df
-
-
+        
 
 def transformer_topics(df: pd.DataFrame, textcol: str, 
                        sentence_transformer_model: str, 

@@ -3,7 +3,7 @@ from podlm.text import transformer_entities
 from span_marker import SpanMarkerModel
 import logging
 
-# print('🔥🔥🔥 conda activate transformers 🔥🔥🔥')
+# print('🔥🔥🔥 conda activate entites 🔥🔥🔥')
 
 model = SpanMarkerModel.from_pretrained("lxyuan/span-marker-bert-base-multilingual-uncased-multinerd")
 model.cuda()
