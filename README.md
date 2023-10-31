@@ -38,7 +38,7 @@ The pipeline will automatically load `private.yaml` as long as it exists in the 
 `curry` keeps this depedency graph updated by running
 
 ```bash
-cd pipeline && pdpp graph --files 'png' --style 'default
+cd pipeline && pdpp graph --files 'png' --style 'default'
 ```
 
 everytime it executes the pipeline. 
