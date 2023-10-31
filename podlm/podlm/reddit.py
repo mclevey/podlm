@@ -3,6 +3,7 @@ import urllib3
 urllib3.disable_warnings()
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
+from podlm.utilities import merge_string_columns
 
 def es_query_reddit(search: str, es: Elasticsearch):
     results = {}    
@@ -55,3 +56,10 @@ def sample_discussions(subs: pd.DataFrame, coms: pd.DataFrame, n: int):
     coms = coms[coms['parent_id'].isin(sampled_sub_ids)]
     return subs, coms
     
+    
+def merge_submissions_and_comments(submissions: pd.DataFrame, comments: pd.DataFrame) -> pd.DataFrame:
+    submissions = merge_string_columns(submissions, 'selftext', 'title', 'text', drop=True)
+    submissions['parent_id'] = submissions['id']
+    comments.rename(columns={'body': 'text'}, inplace=True)
+    df = pd.concat([submissions, comments])
+    return df

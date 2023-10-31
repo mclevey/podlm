@@ -1,0 +1,20 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  sample_conversations: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_comments.parquet.gzip
+    - harmreduction_submissions.parquet.gzip
+    task_name: sample_conversations
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- merge_submissions_and_comments.py
+target_dir: merge_submissions_and_comments

@@ -3,7 +3,7 @@ from podlm.reddit import sample_discussions
 import logging
 
 configure_logging(__file__)
-config, private = load_configs()
+config, _ = load_configs()
 subreddits = config['subreddits']
 n_conversations = config['sample_n_conversations']
 
