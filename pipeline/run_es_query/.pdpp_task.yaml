@@ -1,0 +1,7 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files: {}
+enabled: true
+language: Python
+src_files:
+- run_es_query.py
+target_dir: run_es_query
