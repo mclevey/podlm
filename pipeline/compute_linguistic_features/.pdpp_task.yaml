@@ -6,14 +6,14 @@ dep_files:
     - config.yaml
     task_name: _import_
     task_out: ./
-  merge_submissions_and_comments: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+  segment_sentences: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
     dir_list: []
     file_list:
-    - harmreduction_post_level_subcom_merged.parquet.gzip
-    task_name: merge_submissions_and_comments
+    - harmreduction_sentences.parquet.gzip
+    task_name: segment_sentences
     task_out: output
 enabled: false
 language: Python
 src_files:
-- segment_sentences.py
-target_dir: segment_sentences
+- compute_linguistic_features.py
+target_dir: compute_linguistic_features

@@ -22,26 +22,6 @@ def split_sentences(df: pd.DataFrame, model, textcol: str = 'text', idcol: str =
     return sentences
 
 
-
-# def split_sentences(df: pd.DataFrame, textcol: str, idcol: str, datetimecol, authorcol: str, model):
-#     sentences, positions, ids, dates, authors = [], [], [], [], []
-#     texts = df[textcol].tolist()
-#     # for some reason, t.strip() is not stripping all the \n characters, so I'm doing it manually...
-#     texts = [t.strip().replace('\n', '') for t in texts if isinstance(t, str) is True]    
-#     docs = model.pipe(texts)
-#     for didx, doc in enumerate(docs):
-#         for sidx, sent in enumerate(doc.sents):
-#             if len(sent) > 2:
-#                 sentences.append(" ".join([token.text for token in sent])) 
-#                 positions.append(sidx)
-#                 ids.append(df[idcol].iloc[didx])
-#                 dates.append(df[datetimecol].iloc[didx])
-#                 authors.append(df[authorcol].iloc[didx])
-#     df = pd.DataFrame([sentences, positions, ids, dates, authors]).T
-#     df.columns = ["sentence", "sentence_position_in_post", 'id', 'date', 'author']
-#     return df
-
-
 def transformer_sentiment(df, idcol, textcol, poscol, authorcol, datecol, tokenizer, model):
     scores, ids, positions, author_l, dates_l, sent_l, errors = [], [], [], [], [], [], []
     id_list = df[idcol].tolist() 
@@ -192,12 +172,10 @@ def truncate_text_to_transformer_limit(text: str, transformer_token_limit: int =
     truncated_text = text[:512]
     cutoff_tokens = text[512:]
     overlimit = len(original_text) - transformer_token_limit
-    
     boundary = '------------------------------------------------------------------'
     message_p1 = f'The following text is {overlimit} tokens over the 512 limit:'
     message_p2 = 'Truncating to 512 tokens to avoid transformer error or indexing problems. The truncated version is as follows:'
     message_p3 = 'The following tokens did not get passed to the model:'
-    
     print(colored(boundary, 'red'))
     print(colored(message_p1, 'red'))
     print(original_text)
@@ -206,92 +184,38 @@ def truncate_text_to_transformer_limit(text: str, transformer_token_limit: int =
     print(colored(message_p3, 'red'))
     print(cutoff_tokens)
     print(colored(boundary, 'red'))
-    
     return text
 
 
-def matchy_matchy(doc, pattern, model):
-    from spacy.matcher import Matcher    
-    matcher = Matcher(model.vocab)
-    matcher.add('pattern', [pattern])
-    matches = matcher(doc, as_spans=True)
-    return [match.text for match in matches]
+# def matchy_matchy(doc, pattern, model):
+#     from spacy.matcher import Matcher    
+#     matcher = Matcher(model.vocab)
+#     matcher.add('pattern', [pattern])
+#     matches = matcher(doc, as_spans=True)
+#     matches = [match.text for match in matches]
+#     return matches
+
+def count_parts_of_speech(df: pd.DataFrame, model, textcol: str = 'sentence') -> pd.DataFrame:
+    counts, ids = [], []
+    docs = model.pipe(df[textcol])
+    for i_doc, doc in enumerate(docs):
+        id_sentence = df.iloc[i_doc]['id_sentence']
+        ids.append(id_sentence)
+        # COARSE POS
+        pos_count = doc.count_by(spacy.attrs.POS)
+        pos_count = {nlp.vocab.strings[k]: v for k, v in pos_count.items()}
+        counts.append(pos_count)
+        
+    counts = pd.DataFrame(counts).fillna(0)
+    counts['id_sentence'] = ids
+    return counts
 
 
-def find_future_tense_sentences(doc, model):
-    auxiliary_verbs_indicating_future_tense = ['will', 'shall', 'going', 'about', 'intend', 'aim', 'plan', 'expect', 'hope', 'would', 'like', 'likely', 'bound', 'scheduled', 'due', 'set']
-    future_tense_pattern = [
-        {'POS': 'AUX', 'LOWER': {'IN': auxiliary_verbs_indicating_future_tense}},
-        {'POS': 'VERB'}
-    ] 
-    matches = matchy_matchy(doc, future_tense_pattern, model)
-    # matcher = Matcher(model.vocab)
-    # matcher.add('FUTURE_TENSE', [future_tense_pattern])
-    # matches = matcher(doc, as_spans=True)
-    # matches = [match.text for match in matches]
-    len_matches = [len(m) for m in matches]
-    if len_matches != []:
-        return True, matches
-    else:
-        return False, matches
-    
-def subsentence_processing_pipeline(df, textcol, model):
-    docs = model.pipe(df[textcol].tolist())
-    
-    verbs_present, verbs_past = [], []
-    future_tense, future_tense_matches = [], []
-    pronouns_first, pronouns_second, pronouns_third = [], [], []
-    basic_text_features = []
-    
-    for doc in docs:
-        basic_text_features.append(len(doc))
-        # MATCH VERBS
-        verbs_present_tense = [{'POS': 'VERB', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Tense=Pres']}}]
-        verbs_past_tense = [{'POS': 'VERB', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Tense=Past']}}]
-                
-        verbs_present.append(matchy_matchy(doc, verbs_present_tense, model))
-        verbs_past.append(matchy_matchy(doc, verbs_past_tense, model))        
-           
-        # COULD THIS BE A FUTURE TENSE SENTENCE?
-        future, future_matches = find_future_tense_sentences(doc, model)   
-        future_tense.append(future)
-        future_tense_matches.append(future_matches)
-           
-        # MATCH PRONOUNS     
-        pronoun_first_person = [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Person=1']}}]
-        pronoun_second_person = [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Person=2']}}]
-        pronoun_third_person = [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Person=3']}}]
-        
-        pronouns_first.append(matchy_matchy(doc, pronoun_first_person, model))
-        pronouns_second.append(matchy_matchy(doc, pronoun_second_person, model))
-        pronouns_third.append(matchy_matchy(doc, pronoun_third_person, model))
-        
-    # CREATE RESULTS DATAFRAME
-    results = pd.DataFrame()
-    results['id'] = df['id']
-    results['author'] = df['author']
-    results['sentence'] = df['sentence']
-    results['sentence_position_in_post'] = df['sentence_position_in_post']
-    results['date'] = df['date']
-    
-    # ADD VERBS
-    results['verbs_present_tense'] = verbs_present
-    results['count_verbs_present_tense'] = [len(l) for l in verbs_present]
-    results['verbs_past_tense'] = verbs_past
-    results['count_verbs_past_tense'] = [len(l) for l in verbs_past]
-    results['bool_sent_likely_future_tense'] = future_tense
-    results['aux_+_verb_future_tense'] = future_tense_matches
-    
-    # ADD PRONOUNS
-    results['pronouns_first'] = pronouns_first
-    results['count_pronouns_first'] = [len(l) for l in pronouns_first]
-    results['pronouns_second'] = pronouns_second
-    results['count_pronouns_second'] = [len(l) for l in pronouns_second]
-    results['pronouns_third'] = pronouns_third
-    results['count_pronouns_third'] = [len(l) for l in pronouns_third]
-    
-    results['number_of_tokens'] = basic_text_features
-    return results
+
+
+
+
+
 
 """
 import pandas as pd
