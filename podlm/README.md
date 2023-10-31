@@ -1,8 +1,8 @@
-# `tod`: Transformer-based Opinion Dynamics
+# `podlm`: Probabilistic Opinion Dynamics with Language Models
 
 ## Installation
 
 ```bash
-cd tod && pip install -e .
+cd podlm && pip install -e .
 ```
 
