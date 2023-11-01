@@ -16,7 +16,23 @@ Or, equivalently:
 curry init rebuilding_pipeline
 ```
  
-The next step is to edit the analysis config file in the root of your analysis directory, e.g., `analyses/mclevey_20231031_rebuilding_pipeline/config.yaml`. Once you've finished with `config.yaml`, you can run the pipeline by supplying `curry run` with the path to the analysis directory. 
+The next step is to edit the analysis config file in the root of your analysis directory, e.g., `analyses/mclevey_20231031_rebuilding_pipeline/config.yaml`. For example, here's one I've been prototyping with:
+
+```yaml
+analysis_id: mclevey_20231031_rebuilding_pipeline
+subreddits: [harmreduction]
+sample_n_conversations: 500
+# label_entities
+entity_score_threshold: 0.75
+# label_topics
+umap_n_neighbors: 15 # MG default
+umap_n_components: 5 # MG default
+hdbscan_min_cluster_size: 15 # MG default
+mmr_model_diversity: 0.3 # MG default
+sentence_transformer_model: "all-MiniLM-L6-v2" # MG default
+```
+
+Once you've finished with `config.yaml`, you can run the pipeline by supplying `curry run` with the path to the analysis directory. 
 
 ```bash
 curry run analyses/mclevey_20231031_rebuilding_pipeline
