@@ -2,11 +2,13 @@ from termcolor import colored
 from scipy.special import softmax
 from datetime import datetime
 import pandas as pd
-# from sentence_transformers import SentenceTransformer
-# from umap import UMAP
-# from hdbscan import HDBSCAN
-# from sklearn.feature_extraction.text import CountVectorizer
-# from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, PartOfSpeech
+from bertopic import BERTopic
+from sentence_transformers import SentenceTransformer
+from umap import UMAP
+from hdbscan import HDBSCAN
+from sklearn.feature_extraction.text import CountVectorizer
+from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, PartOfSpeech
+
 
 def split_sentences(df: pd.DataFrame, model, textcol: str = 'text', idcol: str = 'id') -> pd.DataFrame:
     sentences = []
@@ -51,6 +53,30 @@ def transformer_entities(df: pd.DataFrame, model, entity_score_threshold: float,
     count_types = count_categorical(results_long, 'id_sentence', 'label', score_threshold=entity_score_threshold)
     count_types.columns = [f'entity_count_{c}'.lower() for c in count_types.columns]
     return results_long, count_types
+
+
+def transformer_topics(df: pd.DataFrame, model, textcol: str = 'sentence', idcol: str = 'id_sentence'):
+    df = df.reset_index(drop=True)
+    sent_embeddings = SentenceTransformer(model)
+    embeddings = sent_embeddings.encode(df[textcol], show_progress_bar=True)
+    umap_model = UMAP(n_neighbors=15, n_components=5, min_dist=0.0, metric='cosine', random_state=30)
+    hdbscan_model = HDBSCAN(min_cluster_size=15, metric='euclidean', cluster_selection_method='eom', prediction_data=True)
+    vectorizer_model = CountVectorizer(stop_words="english", min_df=2, ngram_range=(1, 2))
+    keybert_model = KeyBERTInspired()
+    # pos_model = PartOfSpeech("en_core_web_sm")
+    mmr_model = MaximalMarginalRelevance(diversity=0.3)
+    representation_model = {"KeyBERT": keybert_model, "MMR": mmr_model} # , "POS": pos_model
+    topic_model = BERTopic(embedding_model=sent_embeddings, 
+                           umap_model=umap_model, 
+                           hdbscan_model=hdbscan_model, 
+                           vectorizer_model=vectorizer_model, 
+                           representation_model=representation_model,
+                           top_n_words=10, verbose=True)
+    topics, probabilities = topic_model.fit_transform(df[textcol], embeddings)
+    df['topic'] = topics
+    df['topic_probability'] = probabilities
+    topic_info = topic_model.get_topic_info()
+    return df, topic_info, topic_model
 
 
 def transformer_sentiment(df: pd.DataFrame, model, tokenizer, textcol: str = 'sentence', idcol: str = 'id_sentence'):
@@ -105,36 +131,6 @@ def transformer_emotion_concepts(df: pd.DataFrame, model, tokenizer, textcol: st
     df.columns = roberta_base_go_emotions
     df['sentence_id'] = sentids
     return df
-
-
-def transformer_topics(df: pd.DataFrame, textcol: str, 
-                       sentence_transformer_model: str, 
-                       hdbscan_min_cluster_size=15, 
-                       show_sent_embeddings_progress_bar=True):
-    from bertopic import BERTopic
-
-    text = df[textcol].tolist()    
-    sent_embeddings = SentenceTransformer(sentence_transformer_model)
-    embeddings = sent_embeddings.encode(text, show_progress_bar=show_sent_embeddings_progress_bar)
-    umap_model = UMAP(n_neighbors=15, n_components=5, min_dist=0.0, metric='cosine', random_state=30)
-    hdbscan_model = HDBSCAN(min_cluster_size=hdbscan_min_cluster_size, metric='euclidean', cluster_selection_method='eom', prediction_data=True)
-    vectorizer_model = CountVectorizer(stop_words="english", min_df=2, ngram_range=(1, 2))
-    keybert_model = KeyBERTInspired()
-    pos_model = PartOfSpeech("en_core_web_sm")
-    mmr_model = MaximalMarginalRelevance(diversity=0.3)
-    representation_model = {"KeyBERT": keybert_model, "MMR": mmr_model, "POS": pos_model}
-    
-    topic_model = BERTopic(embedding_model=sent_embeddings, umap_model=umap_model, hdbscan_model=hdbscan_model, 
-                           vectorizer_model=vectorizer_model, representation_model=representation_model,
-                           top_n_words=10, verbose=True)
-
-    topics, probabilities = topic_model.fit_transform(df[textcol].tolist(), embeddings)
-
-    topic_info = topic_model.get_topic_info()
-    df['topic'] = topics
-    df['topic_probability'] = probabilities
-    return topics, probabilities, topic_info, df, topic_model
-
 
 
 

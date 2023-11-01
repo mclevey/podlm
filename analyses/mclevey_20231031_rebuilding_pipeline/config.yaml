@@ -1,4 +1,9 @@
 analysis_id: mclevey_20231031_rebuilding_pipeline
 subreddits: [harmreduction]
 sample_n_conversations: 500
+# label_entities
 entity_score_threshold: 0.75
+# label_topics
+# sentence_transformer_model: "all-MiniLM-L6-v2"
+# hdbscan_min_cluster_size: 15
+# show_sent_embeddings_progress_bar: True

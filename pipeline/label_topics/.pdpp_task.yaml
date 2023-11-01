@@ -12,8 +12,8 @@ dep_files:
     - harmreduction_sentences.parquet.gzip
     task_name: segment_sentences
     task_out: output
-enabled: false
+enabled: true
 language: Python
 src_files:
-- label_emotion_concepts.py
-target_dir: label_emotion_concepts
+- label_topics.py
+target_dir: label_topics
