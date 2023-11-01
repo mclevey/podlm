@@ -55,7 +55,13 @@ def transformer_entities(df: pd.DataFrame, model, entity_score_threshold: float,
     return results_long, count_types
 
 
-def transformer_topics(df: pd.DataFrame, model, textcol: str = 'sentence', idcol: str = 'id_sentence'):
+def transformer_topics(df: pd.DataFrame, 
+                       model: str = "all-MiniLM-L6-v2", 
+                       umap_n_neighbors: int = 15,
+                       umap_n_components: int = 5,
+                       hdbscan_min_cluster_size: int = 15,
+                       mmr_model_diversity: float = 0.3,
+                       textcol: str = 'sentence'):
     df = df.reset_index(drop=True)
     sent_embeddings = SentenceTransformer(model)
     embeddings = sent_embeddings.encode(df[textcol], show_progress_bar=True)

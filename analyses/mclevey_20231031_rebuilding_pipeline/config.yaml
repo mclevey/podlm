@@ -4,6 +4,8 @@ sample_n_conversations: 500
 # label_entities
 entity_score_threshold: 0.75
 # label_topics
-# sentence_transformer_model: "all-MiniLM-L6-v2"
-# hdbscan_min_cluster_size: 15
-# show_sent_embeddings_progress_bar: True
+umap_n_neighbors: 15 # MG default
+umap_n_components: 5 # MG default
+hdbscan_min_cluster_size: 15 # MG default
+mmr_model_diversity: 0.3 # MG default
+sentence_transformer_model: "all-MiniLM-L6-v2" # MG default
