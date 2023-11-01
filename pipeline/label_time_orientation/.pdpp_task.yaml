@@ -1,0 +1,19 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  segment_sentences: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_sentences.parquet.gzip
+    task_name: segment_sentences
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- label_time_orientation.py
+target_dir: label_time_orientation

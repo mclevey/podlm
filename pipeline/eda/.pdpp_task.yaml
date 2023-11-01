@@ -1,0 +1,19 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  merge_sentence_level_features: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_sentence_level_features_merged.parquet.gzip
+    task_name: merge_sentence_level_features
+    task_out: output
+  merge_submissions_and_comments: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_post_level_subcom_merged.parquet.gzip
+    task_name: merge_submissions_and_comments
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- eda.py
+target_dir: eda

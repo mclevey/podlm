@@ -1,0 +1,43 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  compute_linguistic_features: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_linguistic_features.parquet.gzip
+    task_name: compute_linguistic_features
+    task_out: output
+  label_emotion_concepts: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_emotion_concepts.parquet.gzip
+    task_name: label_emotion_concepts
+    task_out: output
+  label_entities: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_entities.parquet.gzip
+    task_name: label_entities
+    task_out: output
+  label_sentiment: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_sentiment.parquet.gzip
+    task_name: label_sentiment
+    task_out: output
+  label_topics: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_topics.parquet.gzip
+    task_name: label_topics
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- merge_sentence_level_features.py
+target_dir: merge_sentence_level_features

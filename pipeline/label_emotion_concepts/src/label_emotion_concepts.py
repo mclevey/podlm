@@ -3,8 +3,6 @@ from podlm.utilities import load_configs, configure_logging, load_parquet, save_
 from podlm.text import transformer_emotion_concepts
 import logging
 
-# print('🔥🔥🔥 conda activate entities 🔥🔥🔥')
-
 model = pipeline(task="text-classification", model="SamLowe/roberta-base-go_emotions", top_k=None)
 
 configure_logging(__file__)

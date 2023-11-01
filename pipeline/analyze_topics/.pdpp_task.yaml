@@ -1,0 +1,15 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  label_topics: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list:
+    - harmreduction_model_safetensors
+    file_list:
+    - harmreduction_topics.parquet.gzip
+    - harmreduction_topic_info.parquet.gzip
+    task_name: label_topics
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- analyze_topics.py
+target_dir: analyze_topics

@@ -103,7 +103,7 @@ def transformer_sentiment(df: pd.DataFrame, model, tokenizer, textcol: str = 'se
                 print(colored(error, 'red'))
     df = pd.DataFrame(scores)
     df.columns = ['sentiment_negative', 'sentiment_neutral', 'sentiment_positive']
-    df['sentence_id'] = sentids
+    df['id_sentence'] = sentids
     return df
         
 
@@ -135,7 +135,7 @@ def transformer_emotion_concepts(df: pd.DataFrame, model, tokenizer, textcol: st
                 print(colored(error, 'red'))
     df = pd.DataFrame(ec_wide)
     df.columns = roberta_base_go_emotions
-    df['sentence_id'] = sentids
+    df['id_sentence'] = sentids
     return df
 
 

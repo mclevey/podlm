@@ -1,0 +1,14 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  label_entities: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_entities_info.parquet.gzip
+    - harmreduction_entities.parquet.gzip
+    task_name: label_entities
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- analyze_entities.py
+target_dir: analyze_entities
