@@ -49,18 +49,24 @@ everytime it executes the pipeline.
 
 You can find `yaml` files to create the environments used in this project in `environments/`.
 
-To write a new environment called `entities.yml`, for example: 
+To generate a `yaml` file with the contents of the `podlm` virtual environment, for example: 
 
 ```bash
-conda env export > environments/entities.yml
+conda env export > environments/podlm.yml
 ```
 
-To create a new environment from a `yaml` file, for example `entities` from `entities.yml`:
+To create a new environment from a `yaml` file, for example `podlm_the_second` from a file called `podlm_the_second.yml`:
 
 ```bash
-conda env create -f environments/entities.yml
+conda env create -f environments/podlm_the_second.yml
 ```
 
+`podlm` is not on conda-forge or pip, so you'll need to install it in the new environment. Make sure you activate the environment first: 
+
+```bash
+conda activate podlm
+pip install -e podlm/
+```
 
 # Packages
 

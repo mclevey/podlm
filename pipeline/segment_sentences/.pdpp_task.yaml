@@ -12,7 +12,7 @@ dep_files:
     - harmreduction_post_level_subcom_merged.parquet.gzip
     task_name: merge_submissions_and_comments
     task_out: output
-enabled: false
+enabled: true
 language: Python
 src_files:
 - segment_sentences.py

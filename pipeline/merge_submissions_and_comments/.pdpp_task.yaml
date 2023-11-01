@@ -13,7 +13,7 @@ dep_files:
     - harmreduction_submissions.parquet.gzip
     task_name: sample_conversations
     task_out: output
-enabled: false
+enabled: true
 language: Python
 src_files:
 - merge_submissions_and_comments.py

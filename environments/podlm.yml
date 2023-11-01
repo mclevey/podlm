@@ -1,4 +1,4 @@
-name: entities
+name: podlm
 channels:
   - conda-forge
   - defaults

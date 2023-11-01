@@ -2,6 +2,7 @@ from termcolor import colored
 from scipy.special import softmax
 from datetime import datetime
 import pandas as pd
+import spacy
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
 from umap import UMAP
@@ -139,42 +140,68 @@ def transformer_emotion_concepts(df: pd.DataFrame, model, tokenizer, textcol: st
     return df
 
 
+def count_parts_of_speech(df: pd.DataFrame, model, textcol: str = 'sentence') -> pd.DataFrame:
+    coarse_counts, ids = [], []
+    pronouns_1, pronouns_2, pronouns_3 = [], [], []
+    docs = model.pipe(df[textcol])
+    for i_doc, doc in enumerate(docs):
+        id_sentence = df.iloc[i_doc]['id_sentence']
+        ids.append(id_sentence)
+        # COARSE POS
+        pos_count = doc.count_by(spacy.attrs.POS)
+        pos_count = {model.vocab.strings[k]: v for k, v in pos_count.items()}
+        coarse_counts.append(pos_count)
+        # FINE POS
+        first, second, third = categorize_pronouns(doc, model)
+        pronouns_1.append(first)
+        pronouns_2.append(second)
+        pronouns_3.append(third)
+
+    coarse_counts = pd.DataFrame(coarse_counts).fillna(0)
+    coarse_counts['id_sentence'] = ids
+    coarse_counts['pronoun_first_person'] = pronouns_1
+    coarse_counts['pronoun_second_person'] = pronouns_2
+    coarse_counts['pronoun_third_person'] = pronouns_3
+    coarse_counts['count_pronoun_first_person'] = [len(x) for x in pronouns_1]
+    coarse_counts['count_pronoun_second_person'] = [len(x) for x in pronouns_2]
+    coarse_counts['count_pronoun_third_person'] = [len(x) for x in pronouns_3]
+    return coarse_counts
 
 
+def matchy_matchy(doc, pattern, model):
+    from spacy.matcher import Matcher    
+    matcher = Matcher(model.vocab)
+    matcher.add('pattern', [pattern])
+    matches = matcher(doc, as_spans=True)
+    matches = [match.text for match in matches]
+    return matches
 
 
-
-
-
-
-
-
-
-
-# def matchy_matchy(doc, pattern, model):
-#     from spacy.matcher import Matcher    
-#     matcher = Matcher(model.vocab)
-#     matcher.add('pattern', [pattern])
-#     matches = matcher(doc, as_spans=True)
-#     matches = [match.text for match in matches]
-#     return matches
-
-# def count_parts_of_speech(df: pd.DataFrame, model, textcol: str = 'sentence') -> pd.DataFrame:
-#     counts, ids = [], []
-#     docs = model.pipe(df[textcol])
-#     for i_doc, doc in enumerate(docs):
-#         id_sentence = df.iloc[i_doc]['id_sentence']
-#         ids.append(id_sentence)
-#         # COARSE POS
-#         pos_count = doc.count_by(spacy.attrs.POS)
-#         pos_count = {nlp.vocab.strings[k]: v for k, v in pos_count.items()}
-#         counts.append(pos_count)
+def categorize_pronouns(doc, model):
+    first = matchy_matchy(doc, [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': [f'Person=1']}}], model)
+    second = matchy_matchy(doc, [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': [f'Person=2']}}], model)
+    third = matchy_matchy(doc, [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': [f'Person=3']}}], model)
+    # pronoun_cats = [first, second, third]
+    # pronouns = pd.DataFrame(pronoun_cats).T
+    # pronouns.columns = ['pronoun_first_person', 'pronoun_second_person', 'pronoun_third_person']
+    # pronoun_first_person_count = pronouns['pronoun_first_person'].str.len
+    # pronoun_second_person_count = pronouns['pronoun_second_person'].str.len
+    # pronoun_third_person_count = pronouns['pronoun_third_person'].str.len
+    return first, second, third
         
-#     counts = pd.DataFrame(counts).fillna(0)
-#     counts['id_sentence'] = ids
-#     return counts
+    
+    
+    
+    # pronoun_first_person = [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Person=1']}}]
+    # pronoun_second_person = [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Person=2']}}]
+    # pronoun_third_person = [{'POS': 'PRON', 'OP': '+', 'MORPH': {'IS_SUPERSET': ['Person=3']}}]
+  
+    # first.append(matchy_matchy(doc, pronoun_first_person, model))
+    # second.append(matchy_matchy(doc, pronoun_second_person, model))
+    # third.append(matchy_matchy(doc, pronoun_third_person, model))
 
-# from sentence_transformers import SentenceTransformer, util
+
+
 
 # similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
 

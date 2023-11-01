@@ -6,7 +6,7 @@ dep_files:
     - config.yaml
     task_name: _import_
     task_out: ./
-enabled: false
+enabled: true
 language: Python
 src_files:
 - run_es_query.py
