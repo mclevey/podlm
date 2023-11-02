@@ -1,0 +1,19 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  merge_sentence_level_features: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_sentence_level_features_merged.parquet.gzip
+    task_name: merge_sentence_level_features
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- construct_networks.py
+target_dir: construct_networks

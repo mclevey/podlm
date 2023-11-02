@@ -2,27 +2,36 @@ import pandas as pd
 import graph_tool.all as gt
 import numpy as np
 
-def construct_author_network(df, output_path = None, net_type = 'subreddit'):
+
+def save_graph(g, filename):
+    g.save(f'../output/{filename}.gt')
+    
+def load_graph(filename):
+    gt.load_graph(f'../input/{filename}.gt')    
+    
+    
+    
+def construct_network(df: pd.DataFrame, authorcol: str, idcol: str, parentidcol: str): # output_path = None, net_type = 'subreddit'
     
     # node and edge types:
     # 0 = author
     # 1 = subreddit
     # 2 = topic
     
-    df = df[df['author'] != '[deleted]'].copy()
+    df = df[df[authorcol] != '[deleted]'].copy()
     df['epoch'] = (df['datetime'] - pd.Timestamp('1970-01-01', tz='UTC')).astype('timedelta64[s]').astype('int64')
     
     df['author_type'] = 0
     df['subreddit_type'] = 1
     df['topic_type'] = 2
         
-    post_auth_dict = dict(zip(df['id'], df['author']))
+    post_auth_dict = dict(zip(df[idcol], df[authorcol]))
     
-    df['author_to'] = df['parent_id'].map(post_auth_dict)
+    df['author_to'] = df[parentidcol].map(post_auth_dict)
     df.dropna(subset=['author_to'],inplace=True)
 
     df_add = pd.DataFrame()    
-    df_add['source'] = df['author'].tolist() + df['author'].tolist()    
+    df_add['source'] = df[authorcol].tolist() + df[authorcol].tolist()    
     df_add['target'] = df['author_to'].tolist() + df['subreddit'].tolist()   
     df_add['type'] = df['author_type'].tolist() + df['subreddit_type'].tolist()   
     df_add['epoch'] = df['epoch'].tolist() + df['epoch'].tolist()
@@ -38,7 +47,7 @@ def construct_author_network(df, output_path = None, net_type = 'subreddit'):
     
     g.vp.vtype = vtype
     
-    auth_list = list(set(df['author'].tolist() + df['author_to'].tolist()))
+    auth_list = list(set(df[authorcol].tolist() + df['author_to'].tolist()))
     subreddit_list = list(set(df['subreddit'].tolist()))
 #    topic_list = list(set(df['topic'].tolist()))
     
@@ -54,11 +63,11 @@ def construct_author_network(df, output_path = None, net_type = 'subreddit'):
     
     gt.remove_self_loops(g)
     
-    if output_path != None:
-        if net_type == 'subreddit':
-            g.save(output_path + df.iloc[0]['subreddit'] + '.gt')           
-        else:
-            g.save(output_path + str(net_type) + '.gt')   # for example, a query id number
+    # if output_path != None:
+    #     if net_type == 'subreddit':
+    #         g.save(output_path + df.iloc[0]['subreddit'] + '.gt')           
+    #     else:
+    #         g.save(output_path + str(net_type) + '.gt')   # for example, a query id number
     
     return g
 

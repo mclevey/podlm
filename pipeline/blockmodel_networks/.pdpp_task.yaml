@@ -1,0 +1,19 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  construct_networks: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_author_network.gt
+    task_name: construct_networks
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- blockmodel_networks.py
+target_dir: blockmodel_networks
