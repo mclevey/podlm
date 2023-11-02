@@ -56,9 +56,9 @@ def construct_author_network(df, output_path = None, net_type = 'subreddit'):
     
     if output_path != None:
         if net_type == 'subreddit':
-            g.save_graph(output_path + df.iloc[0]['subreddit'] + '.gt')           
+            g.save(output_path + df.iloc[0]['subreddit'] + '.gt')           
         else:
-            g.save_graph(output_path + str(net_type) + '.gt')   # for example, a query id number
+            g.save(output_path + str(net_type) + '.gt')   # for example, a query id number
     
     return g
 

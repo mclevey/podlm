@@ -36,6 +36,12 @@ dep_files:
     - harmreduction_topics.parquet.gzip
     task_name: label_topics
     task_out: output
+  merge_submissions_and_comments: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_post_level_subcom_merged.parquet.gzip
+    task_name: merge_submissions_and_comments
+    task_out: output
 enabled: true
 language: Python
 src_files:

@@ -1,3 +1,4 @@
+import re
 import yaml
 import pandas as pd
 import logging
@@ -32,6 +33,22 @@ def merge_string_columns(df: pd.DataFrame, col1: pd.Series, col2: pd.Series, new
     df[new_col_name] = df[col1].fillna('') + df[col2].fillna('')
     if drop is True:
         df = df.drop(columns=[col1, col2])
+    return df
+
+
+def split_id_sentence_strings(s: str) -> str:
+    pattern = r'[^_]*_[^_]*'
+    match = re.search(pattern, s)
+    if match:
+        id_post = match.group()
+        sentence_position_in_post = s.split('_')[2]
+        return id_post, sentence_position_in_post
+    else:
+        return None
+
+    
+def split_ids(df: pd.DataFrame, id_sentence: str = 'id_sentence') -> pd.DataFrame:
+    df[['post_id', 'sentence_position_in_post']] = df[id_sentence].apply(split_id_sentence_strings).apply(pd.Series)
     return df
 
 
