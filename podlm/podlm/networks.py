@@ -3,12 +3,12 @@ import graph_tool.all as gt
 import numpy as np
 
 
-def save_graph(g, filename):
+def save_gt(g, filename):
     g.save(f'../output/{filename}.gt')
     
-def load_graph(filename):
-    gt.load_graph(f'../input/{filename}.gt')    
     
+def load_gt(filename):
+    return gt.load_graph(f'../input/{filename}.gt')
     
     
 def construct_network(df: pd.DataFrame, authorcol: str, idcol: str, parentidcol: str): # output_path = None, net_type = 'subreddit'
