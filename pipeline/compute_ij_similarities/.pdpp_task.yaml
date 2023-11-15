@@ -1,0 +1,26 @@
+!!python/object:pdpp.tasks.standard_task.StandardTask
+dep_files:
+  _import_: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - config.yaml
+    task_name: _import_
+    task_out: ./
+  construct_similarity_datasets: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_edges.parquet.gzip
+    - harmreduction_vertices.parquet.gzip
+    task_name: construct_similarity_datasets
+    task_out: output
+  merge_sentence_level_features: !!python/object:pdpp.templates.dep_dataclass.dep_dataclass
+    dir_list: []
+    file_list:
+    - harmreduction_sentence_level_features_merged.parquet.gzip
+    task_name: merge_sentence_level_features
+    task_out: output
+enabled: true
+language: Python
+src_files:
+- compute_ij_similarities.py
+target_dir: compute_ij_similarities
