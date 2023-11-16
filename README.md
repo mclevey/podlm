@@ -10,7 +10,7 @@ In short,
 
 - the `curry` package is a command-line interface (CLI) for running the `pdpp` pipeline and storing results for further analysis (in the `analyses/` directory).
 - the `podlm` package contains ~90% the code for the `pdpp` pipeline itself, which is a series of carefully coordinated steps that take raw data and produce a set of labelled conversations.
-- the `pipeline` directory contains all the steps of the pipeline. It's a `pdpp` project within the larger project repo. John and Tyler are the primary contributors to this part of the project, but Romina will almost certainly be involved in some tasks (e.g., classifying time orientation with few shot learning, etc.). Tyler will "supervise" Romina on this work while John is on parental leave. 
+- the `pipeline` directory contains all the steps of the pipeline. It's a `pdpp` project within the larger project repo. John and Tyler are the primary contributors to this part of the project, but Romina will almost certainly be involved in some tasks (e.g., classifying time orientation with few shot learning, etc.). 
 - the `environments` directory contains `yaml` files for creating the environments used in this project. **Note that the pipeline can't run with a single `env` due to some tough incompatibilities (e.g., between `graph-tool` and `pytorch`). Unfortanately, it is currently necessary to toggle between the `podlm` and `gt` environments to run the pipeline.** `gt` is only needed for the network-based tasks, `podlm` is good for the rest.
 - The contents of the `prototyping` directory are ignored by `git`, so you can have whatever you want in there and there will never be a merge conflict. This is where you can prototype new ideas, etc.
 
@@ -107,4 +107,4 @@ conda activate podlm
 pip install -e podlm/
 ```
 
-More from me soon. Time to start twinning...
+More from me soon. 
