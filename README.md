@@ -2,7 +2,7 @@
 
 # Overview
 
-This repo contains all the code for the "Probabilistic Opinion Dynamics with Language Models project," aka `podlm`. This is a SSHRC-funded research project led by Dr. John McLevey (PI) with Drs. David Tindall, Darrin Durant, Anabel-Quan-Haase as co-investigators, Tyler Crick (ABD) as the lead Research Assistant / Data Scientist, and Research Assistants Karmvir Padda and Romina Heshimi. 
+This repo contains all the code for the "Probabilistic Opinion Dynamics with Language Models project," aka `podlm`. This is a SSHRC-funded research project led by Dr. John McLevey (PI) with Drs. David Tindall, Darrin Durant, Anabel-Quan-Haase as co-investigators, Tyler Crick (ABD) as the lead Research Assistant / Data Scientist, and Research Assistants Karmvir Padda and Romina Hashemi. 
 
 This README is a work in progress. Eventually it will be a comprehensive guide to the project, but I've got to bow out early because... the twins are coming!
 
