@@ -90,3 +90,11 @@ def group_and_aggregate_author_level(
 def get_largest_series(s1, s2, s3):
     df = pd.concat([s1, s2, s3], axis=1)
     return df.idxmax(axis=1)
+
+def to_POSIX(date):  # [YYYY,MM,DD]
+    ts = datetime(date[0],date[1],date[2]).replace(tzinfo = timezone.utc).timestamp()
+    return int(ts)
+
+def from_POSIX(timestamp):
+    dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    return dt
