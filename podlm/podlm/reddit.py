@@ -37,7 +37,7 @@ def es_results_to_df(search_results):
     df = pd.json_normalize(data = search_results)
     df.columns = [col.split(".")[-1] for col in df.columns]
     df['created_utc'] = df['created_utc'].astype(int)
-
+    return df
 
 def set_dtypes(df: pd.DataFrame):
     df['subreddit_type'] = df['subreddit_type'].astype('category')
