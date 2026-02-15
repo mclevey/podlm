@@ -5,6 +5,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 from podlm.utilities import merge_string_columns, to_POSIX, from_POSIX
 
+""" OLD...
 def es_query_reddit(search: str, es: Elasticsearch):
     results = {}    
     query = {'query': {'match': {'subreddit': search}}}
@@ -25,23 +26,55 @@ def es_query_reddit(search: str, es: Elasticsearch):
             results['coms'] = df    
             df['id'] = 't1_' + df['id']
     return results['subs'], results['coms']
+"""
 
-''' OLD
-def es_results_to_df(search_results):
-    df = pd.DataFrame.from_records(list(search_results))
-    df = pd.concat([df, df['_source'].apply(pd.Series)], axis=1)
-    return df
-'''
+def es_query_reddit(search: str, es: Elasticsearch):
+    results = {}
+    query = {'query': {'match': {'subreddit': search}}}
+    reddit_indexes = ['reddit-index-s', 'reddit-index-c']
+    for ri in reddit_indexes:
+        search_results = scan(es, query = query, index=ri)
+        df = es_results_to_df(search_results)
+
+        # FIX: Rename _id to id before dropping other columns
+        if '_id' in df.columns:
+            df.rename(columns={'_id': 'id'}, inplace=True)
+
+        # FIX: Only drop columns that actually exist (excluding _id which is now renamed)
+        dropcols = ['_source', '_score', '_index', 'gildings', 'sort']
+        existing_dropcols = [col for col in dropcols if col in df.columns]
+        if existing_dropcols:
+            df.drop(columns=existing_dropcols, inplace=True)
+
+        df = set_dtypes(df)
+        df = process_datetimes(df)
+
+        if ri == 'reddit-index-s':
+            df['id'] = 't3_' + df['id']
+            results['subs'] = df
+        elif ri == 'reddit-index-c':
+            df['id'] = 't1_' + df['id']
+            results['coms'] = df
+    return results['subs'], results['coms']
+
 # NEW (roughly 3x faster)
 def es_results_to_df(search_results):
     df = pd.json_normalize(data = search_results)
     df.columns = [col.split(".")[-1] for col in df.columns]
     df['created_utc'] = df['created_utc'].astype(int)
+    
+    # FIX: Convert ID columns to strings to avoid mixed types
+    id_columns = [c for c in df.columns if '_id' in c]
+    for col in id_columns:
+        df[col] = df[col].astype(str)
+
     return df
+
 
 def set_dtypes(df: pd.DataFrame):
     df['subreddit_type'] = df['subreddit_type'].astype('category')
-    df['gilded'] = df['gilded'].astype('bool')
+    if 'gilded' in df.columns:
+        df['gilded'] = df['gilded'].astype('bool')
     return df
 
 
@@ -50,7 +83,7 @@ def process_datetimes(df: pd.DataFrame):
     df['ymd'] = df['datetime'].dt.strftime('%Y-%m-%d')
     df.dropna(subset=['datetime'], inplace=True)
     df.drop(columns=['created_utc'], inplace=True)
-    
+
     df['tidx'] = pd.DatetimeIndex(df['ymd'])
     df.set_index('tidx', inplace=True)
     return df
