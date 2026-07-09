@@ -14,6 +14,7 @@ umap_n_neighbors = config['umap_n_neighbors']
 umap_n_components = config['umap_n_components']
 hdbscan_min_cluster_size = config['hdbscan_min_cluster_size']
 mmr_model_diversity = config['mmr_model_diversity']
+include_pos_representation = config.get('include_pos_topic_representation', False)
 
 
 for r in subreddits:
@@ -25,7 +26,8 @@ for r in subreddits:
                                                          umap_n_components=umap_n_components,
                                                          hdbscan_min_cluster_size=hdbscan_min_cluster_size,
                                                          mmr_model_diversity=mmr_model_diversity,
-                                                         textcol='sentence')
+                                                         textcol='sentence',
+                                                         include_pos_representation=include_pos_representation)
     save_parquet(topics, f'{r}_topics')
     save_parquet(topic_info, f'{r}_topic_info')
     os.makedirs(f'../output/{r}_model_safetensors', exist_ok=True)

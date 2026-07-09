@@ -18,7 +18,7 @@ for r in subreddits:
     to_merge = []
     tasks = [
         "emotion_concepts",
-        "entities",
+        "entities_info",
         "sentiment",
         "topics",
         "linguistic_features",
@@ -52,11 +52,9 @@ for r in subreddits:
     authors_and_post_ids.drop("id", axis=1, inplace=True)
     authors_and_post_ids.reset_index(drop=True, inplace=True)
     with_authors = pd.merge(authors_and_post_ids, merged, on="post_id")
-    dropcols = [c for c in with_authors.columns if c.endswith("_x") or c.endswith("_y")]
-    for dc in dropcols:
-        try:
-            with_authors.drop(dc, axis=1, inplace=True)
-        except:
-            pass
+    dropcols = [
+        c for c in with_authors.columns if c.endswith("_x") or c.endswith("_y")
+    ]
+    with_authors = with_authors.drop(columns=dropcols, errors="ignore")
     save_parquet(with_authors, f"{r}_sentence_level_features_merged")
     logging.debug("Completed sentence-level merge.")
